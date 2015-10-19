@@ -12,7 +12,7 @@ window.tagbox = (el, matchCallback) ->
       myTags.push(tag)
     tagText = createTagTextBox()
     el.appendChild tagText
-    tagcomplete(tagText, matchCallback)
+    tagcomplete(tagText, matchCallback, myTags)
 
 
   createTagElement = (tag) ->

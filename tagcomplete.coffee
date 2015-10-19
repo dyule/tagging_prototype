@@ -1,4 +1,4 @@
-window.tagcomplete = (elem, listCallback) ->
+window.tagcomplete = (elem, listCallback, filterList) ->
   listElem = document.createElement("datalist")
   elem.parentNode.insertBefore listElem, elem.nextSibling
   listElem.id = "list1337"
@@ -9,12 +9,19 @@ window.tagcomplete = (elem, listCallback) ->
     j = 0
     while i < list.length and j < listElem.childNodes.length
       curOption = listElem.childNodes.item(j)
+      skip = false
       if list[i] < curOption.value
-        itemElem = document.createElement "option"
-        itemElem.value = list[i]
-        listElem.insertBefore itemElem, curOption
-        i += 1
-        j += 1
+        for stopWord in filterList
+          if list[i] == stopWord
+            skip = true
+        if skip
+          i += 1
+        else
+          itemElem = document.createElement "option"
+          itemElem.value = list[i]
+          listElem.insertBefore itemElem, curOption
+          i += 1
+          j += 1
       else if list[i] > curOption.value
         listElem.removeChild(curOption)
       else
@@ -25,9 +32,14 @@ window.tagcomplete = (elem, listCallback) ->
       listElem.removeChild(listElem.childNodes.item(j))
 
     while i < list.length
-      itemElem = document.createElement "option"
-      itemElem.value = list[i]
-      listElem.appendChild itemElem
+      skip = false
+      for stopWord in filterList
+        if list[i] == stopWord
+          skip = true
+      if not skip
+        itemElem = document.createElement "option"
+        itemElem.value = list[i]
+        listElem.appendChild itemElem
       i += 1
 
 

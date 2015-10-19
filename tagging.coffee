@@ -12,7 +12,7 @@ objects = [
 ]
 
 tags = {
-  't': {'a': {'g': {1:{count: 1},2:{count: 1},3:{count: 1}}}}}
+  't': {'a': {'g': {1:{objects: [objects[0]]},2:{objects: [objects[0]]},3:{objects: [objects[1]]}}}}}
 
 exports.addObject = (obj) ->
   if not obj.tags
@@ -21,9 +21,35 @@ exports.addObject = (obj) ->
     obj.name = ""
   objects.push(obj)
 
-exports.forObjects = (func) ->
-  for obj in objects
-    func(obj)
+exports.forObjectsAndTags = (objFunc, tagFunc, tagList) ->
+  tagIndex = 0
+  subTags = {}
+  objList = objects
+  if tagList.length > 0
+    rootTag = tagList[0]
+    node = tags
+    while tagIndex < rootTag.length
+      if node[rootTag[tagIndex]]
+        node = node[rootTag[tagIndex]]
+        tagIndex += 1
+      else
+        return
+    if node.objects
+      objList = node.objects
+    else
+      objList = []
+  for obj in objList
+    toAdd = tagList.length == 0
+    for tag in obj.tags
+      if tagList.indexOf(tag) > -1
+        toAdd = true
+    if toAdd
+      objFunc(obj)
+      for tag in obj.tags
+        if tagList.indexOf(tag) == -1
+          subTags[tag] = true
+  for own tag of subTags
+    tagFunc tag
   return
 
 exports.objectsInTag = (tag) ->
@@ -42,9 +68,10 @@ exports.addTag = (obj, tag) ->
     if not node[ch]
       node[ch] = {}
     node = node[ch]
-  if not node.count
-    node.count = 0
-  node.count += 1
+  if not node.objects
+    node.objects = []
+  node.objects.push(obj)
+  console.log(tags)
 
 
 exports.removeTag = (obj, tag) ->
@@ -53,23 +80,26 @@ exports.removeTag = (obj, tag) ->
   if index > -1
     obj.tags.splice(index, 1)
 
-    _removeFromNode(tag, 0, tags)
+    _removeFromNode(tag, 0, tags, obj)
 
-_removeFromNode = (tag, index, node) ->
+    console.log(tags)
+
+_removeFromNode = (tag, index, node, obj) ->
   if index == tag.length
-    node.count -= 1
-    if node.count == 0
+    objIndex = node.objects.indexOf(obj)
+    node.objects.splice objIndex, 1
+    if node.objects.length == 0
       for own ch of node
-        if ch != 'count'
+        if ch != 'objects'
           return false
       return true
   else
-    if _removeFromNode(tag, index + 1, node[tag[index]])
+    if _removeFromNode(tag, index + 1, node[tag[index]], obj)
       delete node[tag[index]]
-      if node.count == 0 or not node.count
+      if not node.count or node.objects.length == 0
         for own ch of node
           console.log ch
-          if ch != 'count'
+          if ch != 'objects'
             return false
         return true
   return false
@@ -87,8 +117,9 @@ _findMatching = (stub, node) ->
     return []
   results = []
   for own ch of node
-    if ch == 'count'
-      results.push(stub)
+    if ch == 'objects'
+      if node.objects.length > 0
+        results.push(stub)
     else
       results = results.concat(_findMatching(stub + ch, node[ch]))
   return results
@@ -96,6 +127,6 @@ _findMatching = (stub, node) ->
 
 exports.matchingTags = (stub, callback) ->
   results = _findPrefix(stub, 0, tags)
-  console.log(results)
+  console.log results
   callback results
 

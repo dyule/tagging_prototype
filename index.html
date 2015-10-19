@@ -23,7 +23,7 @@
             font-weight: 600;
         }
 
-        #objectList {
+        #objectsAndTags {
             width: 200px;
             float: left;
         }
@@ -49,6 +49,12 @@
             padding: 2px 3px;
             color: lightgray;
         }
+
+        .selected {
+            background-color: #EEFFFF;
+            border: blue 2px solid;
+            border-radius: 10px;
+        }
     </style>
     <!--<link rel="stylesheet" href="typeahead.css" />-->
     <!--<script src="jquery-2.1.4.min.js"></script>-->
@@ -57,6 +63,7 @@
     <script src="tagging.js"></script>
     <script src="tagbox.js"></script>
     <script>
+        var navTags = [];
         document.addEventListener("DOMContentLoaded", function() {
             var addButton = document.getElementById("addObject");
             addButton.addEventListener("click", function() {
@@ -71,9 +78,19 @@
           
         });
         function renderList() {
-            var objList = document.getElementById("objectList");
+            var objList = document.getElementById("objectList"),
+                tagList = document.getElementById("tagList"),
+                navElem = document.getElementById("navTags"),
+                navIndex = 0,
+                navItem;
             objList.innerHTML = "";
-            tagging.forObjects(function(obj) {
+            tagList.innerHTML = "";
+            navElem.innerHTML = "";
+            for (;navIndex < navTags.length; navIndex += 1) {
+                renderNavItem(navTags[navIndex])
+            }
+
+            tagging.forObjectsAndTags(function(obj) {
                 var element = document.createElement("div"),
                     nameElement = document.createElement("span"),
                     tagsElement = document.createElement("span"),
@@ -92,13 +109,41 @@
                 element.appendChild(tagsElement);
                 objList.appendChild(element);
                 element.addEventListener("click", function() {
+                    for (var index = 0; index < element.parentNode.childNodes.length; index += 1) {
+                        element.parentNode.childNodes[index].className = "listObject";
+                    }
+                    element.className = "listObject selected";
                     renderObject(obj);
                 })
 
-            });
+            }, function(tag) {
+                console.log(tag);
+                var element = document.createElement("div"),
+                    nameElement = document.createElement("span");
+                element.className = "listTag";
+                nameElement.textContent = tag;
+                nameElement.className = "listTagName";
+                element.appendChild(nameElement);
+                element.addEventListener("click", function () {
+                    navTags.push(tag);
+                    renderList();
+                    document.getElementById("objectList").firstChild.dispatchEvent(new MouseEvent("click"));
+                });
+                tagList.appendChild(element);
+            }, navTags);
+            function renderNavItem(item) {
+                navItem = document.createElement("span");
+                navItem.textContent = item;
+                navElem.appendChild(navItem);
+                navItem.addEventListener("click", function() {
+                    var index = navTags.indexOf(item);
+                    navTags.splice(index, 1);
+                    renderList()
+                    document.getElementById("objectList").firstChild.dispatchEvent(new MouseEvent("click"));
+                })
+            }
         }
 
-       ;
         function renderObject(obj) {
             var objTags = document.getElementById('objTags'),
                 objClone = objTags.cloneNode(false);
@@ -115,17 +160,19 @@
                 tagging.removeTag(obj, e.detail);
                 renderList()
             });
-
-
-
         }
+
     </script>
 </head>
 <body>
 <div id="controls">
     <input  id="addObject" type="button" value="Add Object" />
+    <span id="navTags"></span>
 </div>
-<div id="objectList"></div>
+<div id="objectsAndTags">
+    <div id="tagList"></div>
+    <div id="objectList"></div>
+</div>
 <div id="propertiesPanel">
 <div class="property"><span id="nameLabel">Name</span><span id="objName"></span></div>
 <div class="property"><span id="tagsLabel">Tags</span><span id="objTags"></span></div>
