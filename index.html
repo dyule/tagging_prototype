@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tagging</title>
+    <style type="text/css">
+        .listObject {
+            padding: 5px 5px;
+        }
+
+        .listObjectName {
+            padding-right: 5px;
+        }
+
+        .listObjectTag {
+            background-color: azure;
+            padding: 2px 5px;
+        }
+
+        .property>span:first-child {
+            width: 50px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        #objectList {
+            width: 200px;
+            float: left;
+        }
+
+        #propertiesPanel {
+            float: left;
+        }
+
+        #objTags {
+            padding-right: 10px;
+            border: 1px lightgray solid;
+        }
+
+        .objTag {
+            padding: 1px 2px;
+            margin: 0 1px;
+            border: 1px solid grey;
+        }
+
+        .removeTag {
+            font-size: smaller;
+            cursor: pointer;
+            padding: 2px 3px;
+            color: lightgray;
+        }
+    </style>
+    <!--<link rel="stylesheet" href="typeahead.css" />-->
+    <!--<script src="jquery-2.1.4.min.js"></script>-->
+    <!--<script src="typeahead.jquery.js"></script>-->
+    <script src="tagcomplete.js"></script>
+    <script src="tagging.js"></script>
+    <script src="tagbox.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var addButton = document.getElementById("addObject");
+            addButton.addEventListener("click", function() {
+                var name = prompt("Name of object?"),
+                    obj = {name: name};
+                tagging.addObject(obj);
+                renderList();
+                document.getElementById("objectList").lastChild.dispatchEvent(new MouseEvent("click"));
+            });
+            renderList();
+            document.getElementById("objectList").firstChild.dispatchEvent(new MouseEvent("click"));
+          
+        });
+        function renderList() {
+            var objList = document.getElementById("objectList");
+            objList.innerHTML = "";
+            tagging.forObjects(function(obj) {
+                var element = document.createElement("div"),
+                    nameElement = document.createElement("span"),
+                    tagsElement = document.createElement("span"),
+                    tagIndex,
+                    tagElement;
+                element.className = "listObject";
+                nameElement.textContent = obj.name;
+                nameElement.className = "listObjectName";
+                for (tagIndex = 0; tagIndex < obj.tags.length; tagIndex += 1) {
+                    tagElement = document.createElement("span");
+                    tagElement.className = "listObjectTag";
+                    tagElement.textContent = obj.tags[tagIndex];
+                    tagsElement.appendChild(tagElement);
+                }
+                element.appendChild(nameElement);
+                element.appendChild(tagsElement);
+                objList.appendChild(element);
+                element.addEventListener("click", function() {
+                    renderObject(obj);
+                })
+
+            });
+        }
+
+       ;
+        function renderObject(obj) {
+            var objTags = document.getElementById('objTags'),
+                objClone = objTags.cloneNode(false);
+            document.getElementById("objName").textContent = obj.name;
+            objTags.parentNode.replaceChild(objClone, objTags);
+            objTags = objClone;
+            tagbox(objTags, tagging.matchingTags);
+            objTags.setTags(obj.tags);
+            objTags.addEventListener("tagadded", function(e) {
+                tagging.addTag(obj, e.detail);
+                renderList()
+            });
+            objTags.addEventListener("tagremoved", function(e) {
+                tagging.removeTag(obj, e.detail);
+                renderList()
+            });
+
+
+
+        }
+    </script>
+</head>
+<body>
+<div id="controls">
+    <input  id="addObject" type="button" value="Add Object" />
+</div>
+<div id="objectList"></div>
+<div id="propertiesPanel">
+<div class="property"><span id="nameLabel">Name</span><span id="objName"></span></div>
+<div class="property"><span id="tagsLabel">Tags</span><span id="objTags"></span></div>
+</div>
+</body>
+</html>
