@@ -13,28 +13,49 @@
         }
 
         .listObjectTag {
-            background-color: azure;
-            padding: 2px 5px;
+            background-color: #9cffa8;
+            padding: 1px 3px;
+            margin: 1px 2px;
+            font-size: small;
         }
 
         .property>span:first-child {
-            width: 50px;
+            width: 60px;
             display: inline-block;
             font-weight: 600;
         }
 
         #objectsAndTags {
             width: 200px;
-            float: left;
+            display: inline-block;
         }
 
         #propertiesPanel {
-            float: left;
+            display: inline-block;
+            vertical-align: top;
         }
 
         #objTags {
             padding-right: 10px;
             border: 1px lightgray solid;
+        }
+
+        .listTag, .listObject, .navTag {
+            padding: 3px 3px 3px 8px;
+            cursor: pointer;
+        }
+
+        .listTag:hover, .listObject:hover {
+            background-color: #d7e8e8;
+        }
+
+        .navTag {
+            font-size: small;
+        }
+
+        .navTag:hover:after {
+            content: "x";
+            color: red
         }
 
         .objTag {
@@ -52,40 +73,70 @@
 
         .selected {
             background-color: #EEFFFF;
-            border: blue 2px solid;
+            border: #5078ff 2px solid;
             border-radius: 10px;
         }
+
+        #tagWrapper, #objectWrapper, #navWrapper {
+            border: 1px solid #DDDDDD;
+        }
+
+        body {
+            background-color: #F9F9F9;
+        }
+
+        #content {
+            margin: 50px auto;
+            max-width: 800px;
+            box-shadow: 1px 1px 1px #DDDDDD;
+            padding: 10px;
+            background-color: #FFFFFF;
+            font-family: sans-serif;
+        }
+
+        #navWrapper {
+            min-height: 40px;
+            max-width: 200px;
+        }
+
+        .label {
+            font-size: small;
+            color: #AAAAAA;
+            padding:2px 2px 5px 2px;
+            display: block;
+        }
     </style>
-    <!--<link rel="stylesheet" href="typeahead.css" />-->
-    <!--<script src="jquery-2.1.4.min.js"></script>-->
-    <!--<script src="typeahead.jquery.js"></script>-->
     <script src="tagcomplete.js"></script>
     <script src="tagging.js"></script>
     <script src="tagbox.js"></script>
     <script>
-        var navTags = [];
+        var navTags = [],
+            selectedObj;
         document.addEventListener("DOMContentLoaded", function() {
             var addButton = document.getElementById("addObject");
             addButton.addEventListener("click", function() {
                 var name = prompt("Name of object?"),
-                    obj = {name: name};
+                    obj = {name: name, tags: navTags.slice()};
                 tagging.addObject(obj);
+                selectedObj = obj;
                 renderList();
-                document.getElementById("objectList").lastChild.dispatchEvent(new MouseEvent("click"));
+                renderObject(obj);
             });
             renderList();
-            document.getElementById("objectList").firstChild.dispatchEvent(new MouseEvent("click"));
+
           
         });
         function renderList() {
             var objList = document.getElementById("objectList"),
                 tagList = document.getElementById("tagList"),
                 navElem = document.getElementById("navTags"),
+                propPanel = document.getElementById("propertiesPanel"),
                 navIndex = 0,
                 navItem;
             objList.innerHTML = "";
             tagList.innerHTML = "";
             navElem.innerHTML = "";
+            propPanel.style.visibility = "hidden";
             for (;navIndex < navTags.length; navIndex += 1) {
                 renderNavItem(navTags[navIndex])
             }
@@ -96,7 +147,12 @@
                     tagsElement = document.createElement("span"),
                     tagIndex,
                     tagElement;
-                element.className = "listObject";
+                if (obj === selectedObj) {
+                    element.className = "listObject selected";
+                    propPanel.style.visibility = "visible";
+                } else {
+                    element.className = "listObject";
+                }
                 nameElement.textContent = obj.name;
                 nameElement.className = "listObjectName";
                 for (tagIndex = 0; tagIndex < obj.tags.length; tagIndex += 1) {
@@ -113,11 +169,11 @@
                         element.parentNode.childNodes[index].className = "listObject";
                     }
                     element.className = "listObject selected";
+                    selectedObj = obj;
                     renderObject(obj);
                 })
 
             }, function(tag) {
-                console.log(tag);
                 var element = document.createElement("div"),
                     nameElement = document.createElement("span");
                 element.className = "listTag";
@@ -127,19 +183,18 @@
                 element.addEventListener("click", function () {
                     navTags.push(tag);
                     renderList();
-                    document.getElementById("objectList").firstChild.dispatchEvent(new MouseEvent("click"));
                 });
                 tagList.appendChild(element);
             }, navTags);
             function renderNavItem(item) {
-                navItem = document.createElement("span");
+                navItem = document.createElement("div");
+                navItem.className = "navTag";
                 navItem.textContent = item;
                 navElem.appendChild(navItem);
                 navItem.addEventListener("click", function() {
                     var index = navTags.indexOf(item);
                     navTags.splice(index, 1);
-                    renderList()
-                    document.getElementById("objectList").firstChild.dispatchEvent(new MouseEvent("click"));
+                    renderList();
                 })
             }
         }
@@ -147,6 +202,7 @@
         function renderObject(obj) {
             var objTags = document.getElementById('objTags'),
                 objClone = objTags.cloneNode(false);
+            document.getElementById("propertiesPanel").style.visibility = "visible";
             document.getElementById("objName").textContent = obj.name;
             objTags.parentNode.replaceChild(objClone, objTags);
             objTags = objClone;
@@ -158,24 +214,35 @@
             });
             objTags.addEventListener("tagremoved", function(e) {
                 tagging.removeTag(obj, e.detail);
-                renderList()
+                renderList();
             });
         }
 
     </script>
 </head>
 <body>
-<div id="controls">
-    <input  id="addObject" type="button" value="Add Object" />
-    <span id="navTags"></span>
-</div>
-<div id="objectsAndTags">
-    <div id="tagList"></div>
-    <div id="objectList"></div>
-</div>
-<div id="propertiesPanel">
-<div class="property"><span id="nameLabel">Name</span><span id="objName"></span></div>
-<div class="property"><span id="tagsLabel">Tags</span><span id="objTags"></span></div>
+<div id="content">
+    <div id="controls">
+        <input  id="addObject" type="button" value="Add Object" />
+    </div>
+    <div id="navWrapper">
+        <div class="label">Navigation</div>
+        <div id="navTags"></div>
+    </div>
+    <div id="objectsAndTags">
+        <div id="tagWrapper">
+            <span class="label">Tags</span>
+            <div id="tagList"></div>
+        </div>
+        <div id="objectWrapper">
+            <span class="label">Objects</span>
+            <div id="objectList"></div>
+        </div>
+    </div>
+    <div id="propertiesPanel">
+    <div class="property"><span id="nameLabel">Name</span><span id="objName"></span></div>
+    <div class="property"><span id="tagsLabel">Tags</span><span id="objTags"></span></div>
+    </div>
 </div>
 </body>
 </html>

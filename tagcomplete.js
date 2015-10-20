@@ -59,6 +59,7 @@
       return results;
     };
     return elem.addEventListener("input", function() {
+      console.log(elem.value);
       if (elem.value.length > 0) {
         return listCallback(elem.value, createList);
       } else {

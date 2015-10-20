@@ -42,6 +42,7 @@
       newTags = document.createElement("input");
       newTags.type = "text";
       newTags.className = "objNewTag";
+      newTags.setAttribute("autocomplete", false);
       wasOne = false;
       newTags.addEventListener("keydown", function(e) {
         return wasOne = e.keyCode === 8 && newTags.selectionStart === 1;
@@ -59,14 +60,15 @@
           }));
           return newTags.dispatchEvent(new Event("input"));
         } else if (e.keyCode === 13) {
-          return addAll();
+          addAll();
+          return e.preventDefault();
         }
       });
       newTags.addEventListener("input", function() {
         var curStart, i, newText, rlen, text, tlist;
         text = newTags.value;
         curStart = newTags.selectionStart;
-        tlist = text.split(/,/g);
+        tlist = text.split(/,|;/g);
         i = 0;
         rlen = 0;
         while (i < tlist.length - 1) {

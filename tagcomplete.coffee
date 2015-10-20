@@ -44,6 +44,7 @@ window.tagcomplete = (elem, listCallback, filterList) ->
 
 
   elem.addEventListener "input", () ->
+    console.log elem.value
     if elem.value.length > 0
       listCallback(elem.value, createList)
     else

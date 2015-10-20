@@ -34,7 +34,7 @@ window.tagbox = (el, matchCallback) ->
     newTags = document.createElement("input")
     newTags.type = "text"
     newTags.className = "objNewTag"
-
+    newTags.setAttribute("autocomplete", false)
     wasOne = false
     newTags.addEventListener "keydown", (e) ->
       wasOne = e.keyCode == 8 and newTags.selectionStart == 1
@@ -51,12 +51,13 @@ window.tagbox = (el, matchCallback) ->
         newTags.dispatchEvent(new Event("input"))
       else if e.keyCode == 13
         addAll()
+        e.preventDefault();
 
 
     newTags.addEventListener "input", () ->
       text = newTags.value
       curStart = newTags.selectionStart
-      tlist = text.split /,/g
+      tlist = text.split /,|;/g
       i = 0
       rlen = 0
       while i < tlist.length - 1

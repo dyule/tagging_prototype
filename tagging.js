@@ -125,8 +125,7 @@
     if (!node.objects) {
       node.objects = [];
     }
-    node.objects.push(obj);
-    return console.log(tags);
+    return node.objects.push(obj);
   };
 
   exports.removeTag = function(obj, tag) {
@@ -134,8 +133,7 @@
     index = obj.tags.indexOf(tag);
     if (index > -1) {
       obj.tags.splice(index, 1);
-      _removeFromNode(tag, 0, tags, obj);
-      return console.log(tags);
+      return _removeFromNode(tag, 0, tags, obj);
     }
   };
 
@@ -159,7 +157,6 @@
         if (!node.count || node.objects.length === 0) {
           for (ch in node) {
             if (!hasProp.call(node, ch)) continue;
-            console.log(ch);
             if (ch !== 'objects') {
               return false;
             }
@@ -203,7 +200,6 @@
   exports.matchingTags = function(stub, callback) {
     var results;
     results = _findPrefix(stub, 0, tags);
-    console.log(results);
     return callback(results);
   };
 

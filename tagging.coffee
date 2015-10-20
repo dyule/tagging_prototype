@@ -71,7 +71,6 @@ exports.addTag = (obj, tag) ->
   if not node.objects
     node.objects = []
   node.objects.push(obj)
-  console.log(tags)
 
 
 exports.removeTag = (obj, tag) ->
@@ -82,7 +81,6 @@ exports.removeTag = (obj, tag) ->
 
     _removeFromNode(tag, 0, tags, obj)
 
-    console.log(tags)
 
 _removeFromNode = (tag, index, node, obj) ->
   if index == tag.length
@@ -98,7 +96,6 @@ _removeFromNode = (tag, index, node, obj) ->
       delete node[tag[index]]
       if not node.count or node.objects.length == 0
         for own ch of node
-          console.log ch
           if ch != 'objects'
             return false
         return true
@@ -127,6 +124,5 @@ _findMatching = (stub, node) ->
 
 exports.matchingTags = (stub, callback) ->
   results = _findPrefix(stub, 0, tags)
-  console.log results
   callback results
 
