@@ -36,8 +36,16 @@
   };
 
   exports.addObject = function(obj) {
+    var i, len, myTags, tag;
     if (!obj.tags) {
       obj.tags = [];
+    } else {
+      myTags = obj.tags;
+      obj.tags = [];
+      for (i = 0, len = myTags.length; i < len; i++) {
+        tag = myTags[i];
+        tagging.addTag(obj, tag);
+      }
     }
     if (!obj.name) {
       obj.name = "";
@@ -46,7 +54,7 @@
   };
 
   exports.forObjectsAndTags = function(objFunc, tagFunc, tagList) {
-    var i, j, k, len, len1, len2, node, obj, objList, ref, ref1, rootTag, subTags, tag, tagIndex, toAdd;
+    var i, j, k, len, len1, len2, node, obj, objList, ref, rootTag, subTags, tag, tagIndex, toAdd;
     tagIndex = 0;
     subTags = {};
     objList = objects;
@@ -69,19 +77,18 @@
     }
     for (i = 0, len = objList.length; i < len; i++) {
       obj = objList[i];
-      toAdd = tagList.length === 0;
-      ref = obj.tags;
-      for (j = 0, len1 = ref.length; j < len1; j++) {
-        tag = ref[j];
-        if (tagList.indexOf(tag) > -1) {
-          toAdd = true;
+      toAdd = true;
+      for (j = 0, len1 = tagList.length; j < len1; j++) {
+        tag = tagList[j];
+        if (obj.tags.indexOf(tag) === -1) {
+          toAdd = false;
         }
       }
       if (toAdd) {
         objFunc(obj);
-        ref1 = obj.tags;
-        for (k = 0, len2 = ref1.length; k < len2; k++) {
-          tag = ref1[k];
+        ref = obj.tags;
+        for (k = 0, len2 = ref.length; k < len2; k++) {
+          tag = ref[k];
           if (tagList.indexOf(tag) === -1) {
             subTags[tag] = true;
           }

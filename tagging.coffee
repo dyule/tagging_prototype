@@ -17,6 +17,11 @@ tags = {
 exports.addObject = (obj) ->
   if not obj.tags
     obj.tags = []
+  else
+    myTags = obj.tags
+    obj.tags = []
+    for tag in myTags
+      tagging.addTag obj, tag
   if not obj.name
     obj.name = ""
   objects.push(obj)
@@ -39,10 +44,10 @@ exports.forObjectsAndTags = (objFunc, tagFunc, tagList) ->
     else
       objList = []
   for obj in objList
-    toAdd = tagList.length == 0
-    for tag in obj.tags
-      if tagList.indexOf(tag) > -1
-        toAdd = true
+    toAdd = true
+    for tag in tagList
+      if obj.tags.indexOf(tag) == -1
+        toAdd = false
     if toAdd
       objFunc(obj)
       for tag in obj.tags

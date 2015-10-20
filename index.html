@@ -44,9 +44,14 @@
             padding: 3px 3px 3px 8px;
             cursor: pointer;
         }
-
         .listTag:hover, .listObject:hover {
             background-color: #d7e8e8;
+        }
+
+        .listTag.dragtarget {
+            background-color: #DDDDDD;
+            border: #505050 2px solid;
+            border-radius: 10px;
         }
 
         .navTag {
@@ -131,6 +136,7 @@
                 tagList = document.getElementById("tagList"),
                 navElem = document.getElementById("navTags"),
                 propPanel = document.getElementById("propertiesPanel"),
+                dragObj,
                 navIndex = 0,
                 navItem;
             objList.innerHTML = "";
@@ -153,6 +159,11 @@
                 } else {
                     element.className = "listObject";
                 }
+                element.setAttribute("draggable", "true");
+                element.addEventListener("dragstart", function(e) {
+                    dragObj = obj;
+                    e.dataTransfer.setData("text/plain", "object");
+                });
                 nameElement.textContent = obj.name;
                 nameElement.className = "listObjectName";
                 for (tagIndex = 0; tagIndex < obj.tags.length; tagIndex += 1) {
@@ -177,6 +188,29 @@
                 var element = document.createElement("div"),
                     nameElement = document.createElement("span");
                 element.className = "listTag";
+                element.addEventListener("dragover", function(e) {
+                    if (dragObj.tags.indexOf(tag) == -1) {
+                        e.preventDefault();
+                    }
+                });
+                element.addEventListener("dragenter", function() {
+                    if (dragObj.tags.indexOf(tag) == -1) {
+                        element.className = "listTag dragtarget"
+                    }
+                });
+                element.addEventListener("dragleave", function () {
+                    element.className = "listTag";
+                })
+                element.addEventListener("drop", function(e) {
+                    if (dragObj.tags.indexOf(tag) == -1) {
+                        tagging.addTag(dragObj, tag);
+                        renderList();
+                        if (dragObj === selectedObj) {
+                            renderObject(selectedObj);
+                        }
+                    }
+                    e.preventDefault();
+                });
                 nameElement.textContent = tag;
                 nameElement.className = "listTagName";
                 element.appendChild(nameElement);
