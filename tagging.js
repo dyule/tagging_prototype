@@ -54,11 +54,19 @@
   };
 
   exports.forObjectsAndTags = function(objFunc, tagFunc, tagList) {
-    var i, j, k, len, len1, len2, node, obj, objList, ref, rootTag, subTags, tag, tagIndex, toAdd;
+    var childTag, i, j, k, l, len, len1, len2, len3, len4, len5, m, n, navTag, node, obj, objList, ref, ref1, ref2, rootTag, subTags, tag, tagIndex, toAdd;
     tagIndex = 0;
     subTags = {};
     objList = objects;
     if (tagList.length > 0) {
+      for (i = 0, len = tagList.length; i < len; i++) {
+        navTag = tagList[i];
+        ref = _findPrefix(navTag + "/", 0, tags);
+        for (j = 0, len1 = ref.length; j < len1; j++) {
+          childTag = ref[j];
+          subTags[childTag] = true;
+        }
+      }
       rootTag = tagList[0];
       node = tags;
       while (tagIndex < rootTag.length) {
@@ -74,21 +82,27 @@
       } else {
         objList = [];
       }
+    } else {
+      ref1 = _findMatching("", tags);
+      for (k = 0, len2 = ref1.length; k < len2; k++) {
+        childTag = ref1[k];
+        subTags[childTag] = true;
+      }
     }
-    for (i = 0, len = objList.length; i < len; i++) {
-      obj = objList[i];
+    for (l = 0, len3 = objList.length; l < len3; l++) {
+      obj = objList[l];
       toAdd = true;
-      for (j = 0, len1 = tagList.length; j < len1; j++) {
-        tag = tagList[j];
+      for (m = 0, len4 = tagList.length; m < len4; m++) {
+        tag = tagList[m];
         if (obj.tags.indexOf(tag) === -1) {
           toAdd = false;
         }
       }
       if (toAdd) {
         objFunc(obj);
-        ref = obj.tags;
-        for (k = 0, len2 = ref.length; k < len2; k++) {
-          tag = ref[k];
+        ref2 = obj.tags;
+        for (n = 0, len5 = ref2.length; n < len5; n++) {
+          tag = ref2[n];
           if (tagList.indexOf(tag) === -1) {
             subTags[tag] = true;
           }
@@ -197,6 +211,8 @@
         if (node.objects.length > 0) {
           results.push(stub);
         }
+      } else if (ch === '/') {
+        results.push(stub);
       } else {
         results = results.concat(_findMatching(stub + ch, node[ch]));
       }

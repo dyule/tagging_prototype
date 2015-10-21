@@ -29,8 +29,12 @@ exports.addObject = (obj) ->
 exports.forObjectsAndTags = (objFunc, tagFunc, tagList) ->
   tagIndex = 0
   subTags = {}
+
   objList = objects
   if tagList.length > 0
+    for navTag in tagList
+      for childTag in _findPrefix(navTag + "/", 0, tags)
+        subTags[childTag] = true
     rootTag = tagList[0]
     node = tags
     while tagIndex < rootTag.length
@@ -43,6 +47,9 @@ exports.forObjectsAndTags = (objFunc, tagFunc, tagList) ->
       objList = node.objects
     else
       objList = []
+  else
+    for childTag in _findMatching("", tags)
+      subTags[childTag] = true
   for obj in objList
     toAdd = true
     for tag in tagList
@@ -122,6 +129,8 @@ _findMatching = (stub, node) ->
     if ch == 'objects'
       if node.objects.length > 0
         results.push(stub)
+    else if ch == '/'
+      results.push(stub)
     else
       results = results.concat(_findMatching(stub + ch, node[ch]))
   return results
