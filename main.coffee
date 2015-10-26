@@ -23,8 +23,6 @@ renderList = ->
   tagList.innerHTML = ''
   navElem.innerHTML = ''
   propPanel.style.visibility = 'hidden'
-  for navItem in navTags
-    renderNavItem navItem
 
   tagging.forObjectsAndTags ((obj) ->
     element = document.createElement('div')
@@ -56,7 +54,32 @@ renderList = ->
       element.className = 'listObject selected'
       selectedObj = obj
       renderObject obj
-  ), ((tag) ->
+  ),((parent, children) ->
+    renderChild = (child) ->
+      childItem = document.createElement('div')
+      childItem.className = 'childTag'
+      childItem.textContent = child
+      navElem.appendChild childItem
+      childItem.addEventListener 'click', () ->
+        navTags.splice navTags.indexOf(parent), 1
+        if parent == "<root>"
+          navTags.push child
+        else
+          navTags.push(parent + "/" + child)
+        renderList()
+    parentItem = document.createElement('div')
+    parentItem.className = 'parentTag'
+    parentItem.textContent = parent
+    navElem.appendChild parentItem
+    parentItem.addEventListener 'click', ->
+      index = navTags.indexOf(parent)
+      navTags.splice index, 1
+      renderList()
+    for child in children
+      renderChild(child)
+
+
+  ),  ((tag) ->
     element = document.createElement('div')
     nameElement = document.createElement('span')
     element.className = 'listTag'
@@ -75,15 +98,10 @@ renderList = ->
         if dragObj == selectedObj
           renderObject selectedObj
       e.preventDefault()
-    for otherItem in navTags
-      if otherItem.length < tag.length - 1 and tag.substr(0, otherItem.length) == otherItem and tag[otherItem.length] == '/'
-        removeItem = otherItem
-        break
     nameElement.textContent = tag
     nameElement.className = 'listTagName'
     element.appendChild nameElement
     element.addEventListener 'click', ->
-      navTags.splice navTags.indexOf(removeItem), 1
       navTags.push tag
       renderList()
     tagList.appendChild element

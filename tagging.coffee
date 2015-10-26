@@ -26,14 +26,17 @@ exports.addObject = (obj) ->
     obj.name = ""
   objects.push(obj)
 
-exports.forObjectsAndTags = (objFunc, tagFunc, tagList) ->
+exports.forObjectsAndTags = (objFunc, subTagFunc, relatedTagFunc, tagList) ->
   tagIndex = 0
   subTags = {}
+  relatedTags = {}
 
   objList = objects
   if tagList.length > 0
     for navTag in tagList
-      for childTag in _findPrefix(navTag + "/", 0, tags)
+      childTags = _findWithoutPrefix(navTag + "/", 0, tags)
+      subTagFunc navTag, childTags
+      for childTag in childTags
         subTags[childTag] = true
     rootTag = tagList[0]
     node = tags
@@ -48,7 +51,9 @@ exports.forObjectsAndTags = (objFunc, tagFunc, tagList) ->
     else
       objList = []
   else
-    for childTag in _findMatching("", tags)
+    childTags = _findMatching("", tags)
+    subTagFunc "<root>", childTags
+    for childTag in childTags
       subTags[childTag] = true
   for obj in objList
     toAdd = true
@@ -58,10 +63,11 @@ exports.forObjectsAndTags = (objFunc, tagFunc, tagList) ->
     if toAdd
       objFunc(obj)
       for tag in obj.tags
-        if tagList.indexOf(tag) == -1
-          subTags[tag] = true
-  for own tag of subTags
-    tagFunc tag
+        if tagList.indexOf(tag) == -1 and not subTags[tag]
+          relatedTags[tag] = true
+
+  for own tag of relatedTags
+    relatedTagFunc tag
   return
 
 exports.objectsInTag = (tag) ->
@@ -120,6 +126,15 @@ _findPrefix = (stub, index, node) ->
      _findMatching(stub, node)
   else
     _findPrefix(stub, index + 1, node[stub[index]])
+
+_findWithoutPrefix = (stub, index, node) ->
+  if not node
+    return []
+  else if index == stub.length
+    _findMatching("", node)
+  else
+    _findWithoutPrefix(stub, index + 1, node[stub[index]])
+
 
 _findMatching = (stub, node) ->
   if not node
